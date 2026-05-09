@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
-import 'home_screen.dart'; // Import halaman home yang baru dibuat
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  // Kunci form dan controller buat baca teks
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -35,22 +38,46 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Padding(
             padding: const EdgeInsets.all(25.0),
             child: Form(
-              key: _formKey, // Pasang kuncinya di sini
+              key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Selamat Datang Kembali!',
+                    "Daftar Akun Baru",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+                    style: TextStyle(
+                      fontSize: 32.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 15),
                   const Text(
-                    'Silakan masuk ke akun Anda untuk melanjutkan aktivitas.',
+                    "Lengkapi data di bawah ini untuk bergabung bersama Catat Lari.",
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                   const SizedBox(height: 40),
+
+                  // --- Input Nama ---
+                  TextFormField(
+                    controller: _nameController,
+                    keyboardType: TextInputType.name,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Lengkap',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Nama Lengkap wajib diisi.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
 
                   // --- Input Email ---
                   TextFormField(
@@ -58,7 +85,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Email',
-                      hintText: 'contoh@email.com',
                       prefixIcon: Icon(Icons.email_outlined),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.all(Radius.circular(15)),
@@ -89,23 +115,65 @@ class _LoginScreenState extends State<LoginScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Password wajib diisi.';
+                      } else if (value.length < 6) {
+                        return 'Password minimal terdiri dari 6 karakter.';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // --- Input Konfirmasi Password ---
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Konfirmasi Password',
+                      prefixIcon: Icon(Icons.lock_reset_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Konfirmasi Password wajib diisi.';
+                      } else if (value != _passwordController.text) {
+                        return 'Konfirmasi Password tidak sesuai.';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 50),
 
-                  // --- Tombol Masuk ---
+                  // --- Tombol Daftar ---
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Cek apakah inputan udah bener semua
                         if (_formKey.currentState!.validate()) {
-                          // Pindah ke Halaman Beranda kalau sukses
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          // Menampilkan Pop-up Dialog di tengah layar
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text('Pendaftaran Berhasil', style: TextStyle(fontWeight: FontWeight.bold)),
+                                content: const Text('Akun Anda telah berhasil didaftarkan ke dalam sistem. Silakan masuk untuk melanjutkan.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      // Menutup dialog pop-up
+                                      Navigator.of(context).pop();
+                                      // Langsung memindahkan user ke halaman Login
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                      );
+                                    },
+                                    child: const Text('OK', style: TextStyle(fontSize: 16)),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         }
                       },
@@ -118,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       child: const Text(
-                        'Masuk',
+                        "Daftar Sekarang",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -128,16 +196,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Belum punya akun? ', style: TextStyle(color: Colors.grey)),
+                      const Text('Sudah punya akun? ', style: TextStyle(color: Colors.grey)),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
                           );
                         },
                         child: const Text(
-                          'Daftar di sini',
+                          'Masuk di sini',
                           style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
                         ),
                       ),
