@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
 import 'welcome_screen.dart';
+import 'add_run_screen.dart';
+import 'home_content.dart';
+import 'profile_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  final List<Map<String, dynamic>> runs = [
+    {"distance": 5.2, "duration": 30},
+    {"distance": 3.5, "duration": 25},
+    {"distance": 7.0, "duration": 45},
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Beranda Catat Lari', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Catat Lari',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -18,32 +37,54 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const WelcomeScreen(),
+                ),
               );
             },
           ),
         ],
       ),
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.check_circle_outline, color: Colors.green, size: 100),
-              const SizedBox(height: 20),
-              const Text(
-                'Login Berhasil',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Selamat datang di aplikasi Catat Lari.\nSilakan mulai aktivitas Anda.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-            ],
+
+      // 🔹 Body berubah sesuai tab
+      body: _selectedIndex == 0
+          ? HomeContent(runs: runs)
+          : const ProfileScreen(),
+
+      // 🔹 FAB hanya muncul di Beranda
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton(
+              tooltip: "Tambah Lari",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddRunScreen(),
+                  ),
+                );
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
+
+      // 🔹 Bottom Navbar
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Beranda",
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: "Profil",
+          ),
+        ],
       ),
     );
   }
