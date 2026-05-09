@@ -2,6 +2,8 @@
 
 A new Flutter project.
 
+Proyek inisiasi Flutter Kelompok Gunung Botak.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
