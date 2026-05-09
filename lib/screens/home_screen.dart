@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'welcome_screen.dart';
 import 'add_run_screen.dart';
 import 'home_content.dart';
@@ -14,20 +17,40 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Map<String, dynamic>> runs = [
-    {"distance": 5.2, "duration": 30, "date": "01-01-2026"},
-    {"distance": 3.5, "duration": 25, "date": "02-01-2026"},
-  ];
+  List<Map<String, dynamic>> runs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRuns();
+  }
+
+  Future<void> _loadRuns() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? runsString = prefs.getString('saved_runs');
+
+    if (runsString != null) {
+      final List<dynamic> decodedData = jsonDecode(runsString);
+      setState(() {
+        runs = decodedData.map((item) => Map<String, dynamic>.from(item)).toList();
+      });
+    }
+  }
+
+  Future<void> _saveRuns() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encodedData = jsonEncode(runs);
+    await prefs.setString('saved_runs', encodedData);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Catat Lari"),
+        title: const Text("Catat Lari", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -36,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text("Konfirmasi Logout"),
-                  content: const Text("Apakah kamu yakin ingin keluar?"),
+                  content: const Text("Apakah Anda yakin ingin keluar?"),
                   actions: [
                     TextButton(
                       onPressed: () {
@@ -45,7 +68,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const Text("Batal"),
                     ),
                     TextButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('isLoggedIn', false);
+
+                        if (!context.mounted) return;
                         Navigator.pop(context);
                         Navigator.pushReplacement(
                           context,
@@ -56,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: const Text(
                         "Logout",
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -66,11 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
       body: _selectedIndex == 0
           ? HomeContent(runs: runs)
           : ProfileScreen(runs: runs),
-
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
         onPressed: () async {
@@ -85,12 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
             setState(() {
               runs.add(result);
             });
+            _saveRuns();
           }
         },
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       )
           : null,
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

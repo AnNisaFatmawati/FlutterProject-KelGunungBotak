@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
-import 'home_screen.dart'; // Import halaman home yang baru dibuat
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,7 +11,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Kunci form dan controller buat baca teks
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -20,6 +20,11 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', true);
   }
 
   @override
@@ -35,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Padding(
             padding: const EdgeInsets.all(25.0),
             child: Form(
-              key: _formKey, // Pasang kuncinya di sini
+              key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -51,8 +56,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                   const SizedBox(height: 40),
-
-                  // --- Input Email ---
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -74,8 +77,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 20),
-
-                  // --- Input Password ---
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
@@ -94,18 +95,58 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 50),
-
-                  // --- Tombol Masuk ---
                   SizedBox(
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Cek apakah inputan udah bener semua
+                      onPressed: () async {
+                        // Cek apakah email dan password sudah diisi dengan benar
                         if (_formKey.currentState!.validate()) {
-                          // Pindah ke Halaman Beranda kalau sukses
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                          await _saveLoginStatus(); // Simpan status login
+
+                          if (!context.mounted) return;
+
+                          // Menampilkan popup berhasil login
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext dialogContext) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                contentPadding: const EdgeInsets.only(top: 30, left: 20, right: 20, bottom: 20),
+                                content: const Text(
+                                  "Login berhasil. Selamat datang kembali.",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                actionsAlignment: MainAxisAlignment.center, // Posisi tombol OK di tengah
+                                actions: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(dialogContext); // Tutup popup-nya dulu
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                      ); // Baru pindah ke HomeScreen
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue,
+                                      foregroundColor: Colors.white,
+                                      elevation: 5,
+                                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "OK",
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         }
                       },
@@ -124,7 +165,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 25),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

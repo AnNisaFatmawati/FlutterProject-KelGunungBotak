@@ -8,6 +8,8 @@ class AddRunScreen extends StatefulWidget {
 }
 
 class _AddRunScreenState extends State<AddRunScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   TextEditingController dateController = TextEditingController();
   TextEditingController distanceController = TextEditingController();
   TextEditingController durationController = TextEditingController();
@@ -22,87 +24,175 @@ class _AddRunScreenState extends State<AddRunScreen> {
 
     if (picked != null) {
       setState(() {
-        dateController.text =
-        "${picked.day}-${picked.month}-${picked.year}";
+        dateController.text = "${picked.day}-${picked.month}-${picked.year}";
       });
     }
+  }
+
+  @override
+  void dispose() {
+    dateController.dispose();
+    distanceController.dispose();
+    durationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tambah Lari"),
+        title: const Text("Tambah Lari", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(25.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  "Tambah Data Lari",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 25),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+                TextFormField(
+                  controller: dateController,
+                  readOnly: true,
+                  onTap: pickDate,
+                  decoration: const InputDecoration(
+                    labelText: "Pilih Tanggal",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                    ),
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Tanggal wajib dipilih.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
 
-            const Text(
-              "Tambah Data Lari",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+                TextFormField(
+                  controller: distanceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Jarak (KM)",
+                    hintText: "Contoh: 5.5",
+                    prefixIcon: Icon(Icons.directions_run),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Jarak wajib diisi.';
+                    } else if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                      return 'Masukkan angka jarak yang valid.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                TextFormField(
+                  controller: durationController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: "Durasi (Menit)",
+                    hintText: "Contoh: 30",
+                    prefixIcon: Icon(Icons.timer_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Durasi wajib diisi.';
+                    } else if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                      return 'Masukkan angka durasi yang valid.';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 40),
+
+                SizedBox(
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext dialogContext) {
+                            return AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              contentPadding: const EdgeInsets.only(top: 30, left: 20, right: 20, bottom: 20),
+                              content: const Text(
+                                "Data telah berhasil disimpan.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              actionsAlignment: MainAxisAlignment.center, // Memposisikan tombol OK di tengah
+                              actions: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(dialogContext);
+                                    Navigator.pop(context, {
+                                      "date": dateController.text,
+                                      "distance": double.tryParse(distanceController.text) ?? 0,
+                                      "duration": int.tryParse(durationController.text) ?? 0,
+                                    });
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    foregroundColor: Colors.white,
+                                    elevation: 5, // Memberikan efek shadow pada tombol OK
+                                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "OK",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text(
+                      "Simpan",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 20),
-
-            // 📅 DATE PICKER
-            TextField(
-              controller: dateController,
-              readOnly: true,
-              onTap: pickDate,
-              decoration: const InputDecoration(
-                labelText: "Pilih Tanggal",
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.calendar_today),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            TextField(
-              controller: distanceController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Jarak (KM)",
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            TextField(
-              controller: durationController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: "Durasi (Menit)",
-                border: OutlineInputBorder(),
-              ),
-            ),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context, {
-                    "date": dateController.text,
-                    "distance":
-                    double.tryParse(distanceController.text) ?? 0,
-                    "duration":
-                    int.tryParse(durationController.text) ?? 0,
-                  });
-                },
-                child: const Text("Simpan"),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
