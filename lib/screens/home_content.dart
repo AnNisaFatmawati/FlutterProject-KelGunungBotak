@@ -9,7 +9,7 @@ class HomeContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -20,36 +20,30 @@ class HomeContent extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 10),
 
             Expanded(
               child: runs.isEmpty
                   ? const Center(
-                      child: Text(
-                        "Belum ada data lari",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    )
+                child: Text("Belum ada data lari"),
+              )
                   : ListView.builder(
-                      itemCount: runs.length,
-                      itemBuilder: (context, index) {
-                        final run = runs[index];
-                        return Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            leading: const Icon(
-                              Icons.directions_run,
-                              color: Colors.blue,
-                            ),
-                            title: Text("${run['distance']} km"),
-                            subtitle: Text(
-                              "Durasi: ${run['duration']} menit",
-                            ),
-                          ),
-                        );
-                      },
+                itemCount: runs.length,
+                itemBuilder: (context, index) {
+                  final run = runs[index];
+
+                  return Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.directions_run),
+                      title: Text("${run['distance']} km"),
+                      subtitle: Text(
+                        "Durasi: ${run['duration']} menit\nTanggal: ${run['date']}",
+                      ),
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),

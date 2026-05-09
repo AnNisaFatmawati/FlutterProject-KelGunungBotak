@@ -15,30 +15,51 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   final List<Map<String, dynamic>> runs = [
-    {"distance": 5.2, "duration": 30},
-    {"distance": 3.5, "duration": 25},
-    {"distance": 7.0, "duration": 45},
+    {"distance": 5.2, "duration": 30, "date": "01-01-2026"},
+    {"distance": 3.5, "duration": 25, "date": "02-01-2026"},
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Catat Lari',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Catat Lari"),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
+
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WelcomeScreen(),
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Konfirmasi Logout"),
+                  content: const Text("Apakah kamu yakin ingin keluar?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Batal"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WelcomeScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Logout",
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
               );
             },
@@ -46,28 +67,30 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      // 🔹 Body berubah sesuai tab
       body: _selectedIndex == 0
           ? HomeContent(runs: runs)
-          : const ProfileScreen(),
+          : ProfileScreen(runs: runs),
 
-      // 🔹 FAB hanya muncul di Beranda
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              tooltip: "Tambah Lari",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddRunScreen(),
-                  ),
-                );
-              },
-              child: const Icon(Icons.add),
-            )
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddRunScreen(),
+            ),
+          );
+
+          if (result != null) {
+            setState(() {
+              runs.add(result);
+            });
+          }
+        },
+        child: const Icon(Icons.add),
+      )
           : null,
 
-      // 🔹 Bottom Navbar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
