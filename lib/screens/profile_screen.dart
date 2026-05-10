@@ -1,15 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'welcome_screen.dart';
+import 'edit_profile_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   final List<Map<String, dynamic>> runs;
 
   const ProfileScreen({super.key, required this.runs});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+
+  String name = "User";
+  String email = "user@gmail.com";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      name = prefs.getString('name') ?? 'User';
+      email = prefs.getString('email') ?? 'user@gmail.com';
+    });
+  }
+
   double getTotalDistance() {
     double total = 0;
-    for (var run in runs) {
+    for (var run in widget.runs) {
       total += (run['distance'] ?? 0).toDouble();
     }
     return total;
@@ -17,7 +41,7 @@ class ProfileScreen extends StatelessWidget {
 
   double getTotalDuration() {
     double total = 0;
-    for (var run in runs) {
+    for (var run in widget.runs) {
       total += (run['duration'] ?? 0).toDouble();
     }
     return total;
@@ -50,16 +74,25 @@ class ProfileScreen extends StatelessWidget {
                   radius: 40,
                   child: Icon(Icons.person, size: 40),
                 ),
+
                 const SizedBox(height: 12),
-                const Text(
-                  "User Demo",
-                  style: TextStyle(
+
+                // 🔥 DATA USER DINAMIS
+                Text(
+                  name,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Text("user@gmail.com", style: TextStyle(color: Colors.grey)),
+
+                Text(
+                  email,
+                  style: const TextStyle(color: Colors.grey),
+                ),
+
                 const SizedBox(height: 25),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -88,16 +121,19 @@ class ProfileScreen extends StatelessWidget {
                         const Text("Hari", style: TextStyle(color: Colors.grey)),
                         const SizedBox(height: 5),
                         Text(
-                          "${runs.length}",
+                          "${widget.runs.length}",
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ],
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 30),
+
                 Row(
                   children: [
+                    // 🔥 EDIT PROFILE BUTTON
                     Expanded(
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
@@ -107,7 +143,18 @@ class ProfileScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditProfileScreen(),
+                            ),
+                          );
+
+                          if (result == true) {
+                            _loadProfile(); // refresh data setelah edit
+                          }
+                        },
                         child: const Text(
                           "Edit Profile",
                           style: TextStyle(
@@ -117,7 +164,10 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+
                     const SizedBox(width: 10),
+
+                    // 🔥 LOGOUT BUTTON
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -144,13 +194,13 @@ class ProfileScreen extends StatelessWidget {
                                     await prefs.setBool('isLoggedIn', false);
 
                                     if (!context.mounted) return;
-                                    Navigator.pop(context);
+
                                     Navigator.pushAndRemoveUntil(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => const WelcomeScreen(),
                                       ),
-                                          (route) => false,
+                                      (route) => false,
                                     );
                                   },
                                   child: const Text(
