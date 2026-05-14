@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
-import 'welcome_screen.dart';
-import 'add_run_screen.dart';
-import 'home_content.dart';
-import 'profile_screen.dart';
+import '../../viewmodels/run_viewmodel.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+
+import '../auth/welcome_screen.dart';
+import '../home/add_run_screen.dart';
+import '../home/home_content.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,34 +19,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  List<Map<String, dynamic>> runs = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRuns();
-  }
-
-  Future<void> _loadRuns() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? runsString = prefs.getString('saved_runs');
-
-    if (runsString != null) {
-      final List<dynamic> decodedData = jsonDecode(runsString);
-      setState(() {
-        runs = decodedData.map((item) => Map<String, dynamic>.from(item)).toList();
-      });
-    }
-  }
-
-  Future<void> _saveRuns() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encodedData = jsonEncode(runs);
-    await prefs.setString('saved_runs', encodedData);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final runVM = context.watch<RunViewModel>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Catat Lari", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -62,23 +40,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   content: const Text("Apakah Anda yakin ingin keluar?"),
                   actions: [
                     TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                       child: const Text("Batal"),
                     ),
                     TextButton(
                       onPressed: () async {
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setBool('isLoggedIn', false);
+                        await context.read<AuthViewModel>().logout();
 
                         if (!context.mounted) return;
+
                         Navigator.pop(context);
-                        Navigator.pushReplacement(
+                        Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const WelcomeScreen(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                          (route) => false,
                         );
                       },
                       child: const Text(
@@ -93,31 +68,31 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+
       body: _selectedIndex == 0
-          ? HomeContent(runs: runs)
-          : ProfileScreen(runs: runs),
+          ? HomeContent(runs: runVM.runs) // ✅ dari ViewModel
+          : ProfileScreen(runs: runVM.runs),
+
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AddRunScreen(),
-            ),
-          );
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddRunScreen(),
+                  ),
+                );
 
-          if (result != null) {
-            setState(() {
-              runs.add(result);
-            });
-            _saveRuns();
-          }
-        },
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
-      )
+                if (result != null) {
+                  await runVM.addRun(result); // ✅ pakai ViewModel
+                }
+              },
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+            )
           : null,
+
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
