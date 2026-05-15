@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../viewmodels/edit_profile_viewmodel.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,26 +13,157 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final EditProfileViewModel _viewModel = EditProfileViewModel();
+
+  String _initialName = '';
+  String _initialEmail = '';
+  String? _base64Image;
+  bool _isModified = false;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _fetchInitialData();
+    _nameController.addListener(_checkModifications);
+    _emailController.addListener(_checkModifications);
   }
 
-  Future<void> _loadProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    _nameController.text = prefs.getString('name') ?? '';
-    _emailController.text = prefs.getString('email') ?? '';
+  Future<void> _fetchInitialData() async {
+    final data = await _viewModel.loadInitialData();
+    setState(() {
+      _initialName = data['name'] ?? '';
+      _initialEmail = data['email'] ?? '';
+      _base64Image = data['profile_image'];
+      _nameController.text = _initialName;
+      _emailController.text = _initialEmail;
+    });
   }
 
-  Future<void> _saveProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('name', _nameController.text);
-    await prefs.setString('email', _emailController.text);
+  void _checkModifications() {
+    bool isTextModified = _nameController.text != _initialName || _emailController.text != _initialEmail;
+    // Tombol aktif kalau teks berubah ATAU gambar berubah
+    if (isTextModified != _isModified) {
+      setState(() => _isModified = isTextModified);
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _base64Image = base64Encode(bytes);
+        _isModified = true; // Langsung biru kalau ganti foto
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Uint8List? imageBytes;
+    if (_base64Image != null) imageBytes = base64Decode(_base64Image!);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Edit Profile", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(25),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Bagian Foto Profil
+              GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: imageBytes != null ? MemoryImage(imageBytes) : null,
+                      child: imageBytes == null ? const Icon(Icons.person, size: 50, color: Colors.grey) : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // Input Nama
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: "Nama",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Input Email
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Tombol Simpan
+              Container(
+                width: double.infinity,
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  boxShadow: _isModified
+                      ? [
+                    BoxShadow(
+                      color: Colors.blue.withAlpha(100), // Shadow biru jelas
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                      : [], // Gada shadow kalau tombol abu-abu
+                ),
+                child: ElevatedButton(
+                  onPressed: _isModified ? () async {
+                    if (_formKey.currentState!.validate()) {
+                      await _viewModel.saveProfileData(_nameController.text, _emailController.text, _base64Image);
+                      if (mounted) Navigator.pop(context, true);
+                    }
+                  } : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isModified ? Colors.blue : Colors.grey.shade400,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade600,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                    elevation: 0, // Elevation 0 karena sudah pakai Shadow dari Container
+                  ),
+                  child: const Text("Simpan", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -37,74 +171,5 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Edit Profile"),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(25),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: "Nama",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama wajib diisi';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Email wajib diisi';
-                  } else if (!value.contains('@')) {
-                    return 'Email tidak valid';
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      await _saveProfile();
-
-                      if (!context.mounted) return;
-
-                      Navigator.pop(context, true); // kirim tanda berhasil
-                    }
-                  },
-                  child: const Text("Simpan"),
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

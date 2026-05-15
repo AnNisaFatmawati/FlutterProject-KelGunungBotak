@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// import screen kamu
+// Import alamat baru - Pastikan jalurnya benar
 import '../home/home_screen.dart';
-import 'login_screen.dart'; // atau welcome_screen.dart
+import 'welcome_screen.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -23,8 +23,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> checkLogin() async {
     final prefs = await SharedPreferences.getInstance();
-    final loginStatus = prefs.getBool('isLogin') ?? false;
+    // Samakan key dengan ProfileViewModel
+    final loginStatus = prefs.getBool('isLoggedIn') ?? false;
 
+    if (!mounted) return;
     setState(() {
       isLogin = loginStatus;
     });
@@ -32,18 +34,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    // ⏳ loading dulu saat ngecek
     if (isLogin == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: CircularProgressIndicator(color: Colors.blue)),
       );
     }
 
-    // 🔀 redirect
+    // 🔀 Hapus kata 'const' di depan HomeScreen() jika masih error merah
     if (isLogin == true) {
       return const HomeScreen();
     } else {
-      return const LoginScreen(); // atau WelcomeScreen
+      return const WelcomeScreen();
     }
   }
 }

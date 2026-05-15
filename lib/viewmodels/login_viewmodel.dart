@@ -1,23 +1,26 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginViewModel {
-  // Memproses logika login dan simpan data
   Future<bool> loginUser(String email, String password) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
+
+    // Ambil data yang tadi didaftarkan
+    String? savedEmail = prefs.getString('registered_email');
+    String? savedPassword = prefs.getString('registered_password');
+
+    print("Mencoba login dengan: $email | $password");
+    print("Data tersimpan: $savedEmail | $savedPassword");
+
+    // Cek apakah cocok
+    if (savedEmail != null && email == savedEmail && password == savedPassword) {
       await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('email', email);
-
-      // Mengambil nama dari depan email
-      String? currentName = prefs.getString('name');
-      if (currentName == null || currentName == 'User' || currentName.isEmpty) {
-        String nameFromEmail = email.split('@')[0];
-        await prefs.setString('name', nameFromEmail);
-      }
-
-      return true; // Mengembalikan nilai true jika proses berhasil
-    } catch (e) {
-      return false; // Mengembalikan nilai false jika ada error
+      // Simpan nama biar di profil muncul
+      String? name = prefs.getString('name');
+      print("Login Berhasil! Selamat datang $name");
+      return true;
     }
+
+    print("Login Gagal: Data tidak cocok atau belum daftar.");
+    return false;
   }
 }

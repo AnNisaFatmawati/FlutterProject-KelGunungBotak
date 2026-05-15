@@ -8,7 +8,9 @@ import 'viewmodels/run_viewmodel.dart';
 // Screens
 import 'views/auth/auth_wrapper.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const MyApp());
 }
 
@@ -28,8 +30,9 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
+          fontFamily: 'Poppins', // Opsional: biar font-nya makin cantik
         ),
-        home: const AuthWrapper(), // ✅ pusat kontrol login
+        home: const AuthWrapper(),
       ),
     );
   }

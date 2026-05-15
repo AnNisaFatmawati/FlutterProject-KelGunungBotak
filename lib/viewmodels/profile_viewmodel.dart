@@ -1,41 +1,8 @@
-<<<<<<< HEAD
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  String name = "User";
-  String email = "user@gmail.com";
-
-  Future<void> loadProfile() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    name = prefs.getString('name') ?? 'User';
-    email = prefs.getString('email') ?? 'user@gmail.com';
-
-    notifyListeners();
-  }
-
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
-  }
-
-  double getTotalDistance(List<Map<String, dynamic>> runs) {
-    return runs.fold(0.0, (sum, run) {
-      return sum + (run['distance'] ?? 0).toDouble();
-    });
-  }
-
-  double getTotalDuration(List<Map<String, dynamic>> runs) {
-    return runs.fold(0.0, (sum, run) {
-      return sum + (run['duration'] ?? 0).toDouble();
-    });
-  }
-=======
-import 'package:shared_preferences/shared_preferences.dart';
-
-class ProfileViewModel {
-  // Mengambil data user dari memori
+  // Fungsi 1: Mengambil data user (Nama, Email, Foto)
   Future<Map<String, String?>> loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
     return {
@@ -45,28 +12,30 @@ class ProfileViewModel {
     };
   }
 
-  // Logika menghitung total jarak
+  // Fungsi 2: Hitung Total Jarak
   double calculateTotalDistance(List<Map<String, dynamic>> runs) {
     double total = 0;
     for (var run in runs) {
+      // Pastikan mengambil data 'distance' dan konversi ke double
       total += (run['distance'] ?? 0).toDouble();
     }
     return total;
   }
 
-  // Logika menghitung total waktu
+  // Fungsi 3: Hitung Total Waktu
   double calculateTotalDuration(List<Map<String, dynamic>> runs) {
     double total = 0;
     for (var run in runs) {
+      // Pastikan mengambil data 'duration' dan konversi ke double
       total += (run['duration'] ?? 0).toDouble();
     }
     return total;
   }
 
-  // Logika logout (menghapus status login)
+  // Fungsi 4: Logout
   Future<void> logoutUser() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false);
+    await prefs.setBool('isLoggedIn', false); // Set status login jadi false
+    notifyListeners();
   }
->>>>>>> annisa-mvvm
 }
