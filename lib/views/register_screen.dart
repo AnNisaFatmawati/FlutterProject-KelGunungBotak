@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/register_viewmodel.dart'; // Memanggil si Koki (ViewModel)
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -15,6 +16,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  // Memanggil instance dari ViewModel
+  final RegisterViewModel _viewModel = RegisterViewModel();
 
   @override
   void dispose() {
@@ -59,7 +63,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // --- Input Nama ---
                   TextFormField(
                     controller: _nameController,
                     keyboardType: TextInputType.name,
@@ -71,15 +74,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nama Lengkap wajib diisi.';
-                      }
+                      if (value == null || value.isEmpty) return 'Nama Lengkap wajib diisi.';
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
 
-                  // --- Input Email ---
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -91,17 +91,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email wajib diisi.';
-                      } else if (!value.contains('@')) {
-                        return 'Format email tidak valid.';
-                      }
+                      if (value == null || value.isEmpty) return 'Email wajib diisi.';
+                      if (!value.contains('@')) return 'Format email tidak valid.';
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
 
-                  // --- Input Password ---
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
@@ -113,17 +109,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password wajib diisi.';
-                      } else if (value.length < 6) {
-                        return 'Password minimal terdiri dari 6 karakter.';
-                      }
+                      if (value == null || value.isEmpty) return 'Password wajib diisi.';
+                      if (value.length < 6) return 'Password minimal terdiri dari 6 karakter.';
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
 
-                  // --- Input Konfirmasi Password ---
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: true,
@@ -135,59 +127,87 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Konfirmasi Password wajib diisi.';
-                      } else if (value != _passwordController.text) {
-                        return 'Konfirmasi Password tidak sesuai.';
-                      }
+                      if (value == null || value.isEmpty) return 'Konfirmasi Password wajib diisi.';
+                      if (value != _passwordController.text) return 'Konfirmasi Password tidak sesuai.';
                       return null;
                     },
                   ),
                   const SizedBox(height: 50),
 
-                  // --- Tombol Daftar ---
-                  SizedBox(
+                  Container(
                     height: 55,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // Menampilkan Pop-up Dialog di tengah layar
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text('Pendaftaran Berhasil', style: TextStyle(fontWeight: FontWeight.bold)),
-                                content: const Text('Akun Anda telah berhasil didaftarkan ke dalam sistem. Silakan masuk untuk melanjutkan.'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      // Menutup dialog pop-up
-                                      Navigator.of(context).pop();
-                                      // Langsung memindahkan user ke halaman Login
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const LoginScreen()),
-                                      );
-                                    },
-                                    child: const Text('OK', style: TextStyle(fontSize: 16)),
-                                  ),
-                                ],
-                              );
-                            },
+
+                          // 🔥 Panggil Koki (ViewModel) untuk mengeksekusi simpan data
+                          bool isSuccess = await _viewModel.registerUser(
+                            _nameController.text,
+                            _emailController.text,
                           );
+
+                          if (!context.mounted) return;
+
+                          if (isSuccess) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  title: const Text('Pendaftaran Berhasil', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                                  content: const Text('Akun Anda telah berhasil didaftarkan ke dalam sistem. Silakan masuk untuk melanjutkan.', textAlign: TextAlign.center),
+                                  actionsAlignment: MainAxisAlignment.center,
+                                  actions: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text('OK', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        elevation: 6,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                       child: const Text(
                         "Daftar Sekarang",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                       ),
                     ),
                   ),

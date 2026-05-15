@@ -1,5 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../viewmodels/profile_viewmodel.dart';
 import 'welcome_screen.dart';
 import 'edit_profile_screen.dart';
 
@@ -13,42 +15,35 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final ProfileViewModel _viewModel = ProfileViewModel();
 
   String name = "User";
   String email = "user@gmail.com";
+  String? _base64Image;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _fetchProfileData();
   }
 
-  Future<void> _loadProfile() async {
-    final prefs = await SharedPreferences.getInstance();
+  // Mengambil data
+  Future<void> _fetchProfileData() async {
+    final data = await _viewModel.loadUserProfile();
     setState(() {
-      name = prefs.getString('name') ?? 'User';
-      email = prefs.getString('email') ?? 'user@gmail.com';
+      name = data['name']!;
+      email = data['email']!;
+      _base64Image = data['profile_image'];
     });
-  }
-
-  double getTotalDistance() {
-    double total = 0;
-    for (var run in widget.runs) {
-      total += (run['distance'] ?? 0).toDouble();
-    }
-    return total;
-  }
-
-  double getTotalDuration() {
-    double total = 0;
-    for (var run in widget.runs) {
-      total += (run['duration'] ?? 0).toDouble();
-    }
-    return total;
   }
 
   @override
   Widget build(BuildContext context) {
+    Uint8List? imageBytes;
+    if (_base64Image != null) {
+      imageBytes = base64Decode(_base64Image!);
+    }
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -70,29 +65,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 40,
-                  child: Icon(Icons.person, size: 40),
+                  backgroundColor: const Color(0xFFE3F2FD),
+                  backgroundImage: imageBytes != null ? MemoryImage(imageBytes) : null,
+                  child: imageBytes == null ? const Icon(Icons.person, size: 40, color: Colors.blue) : null,
                 ),
-
                 const SizedBox(height: 12),
-
-                // 🔥 DATA USER DINAMIS
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                Text(
-                  email,
-                  style: const TextStyle(color: Colors.grey),
-                ),
-
+                Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(email, style: const TextStyle(color: Colors.grey)),
                 const SizedBox(height: 25),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -100,82 +82,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         const Text("Jarak", style: TextStyle(color: Colors.grey)),
                         const SizedBox(height: 5),
-                        Text(
-                          "${getTotalDistance()} km",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
+                        // Memanggil perhitungan dari ViewModel
+                        Text("${_viewModel.calculateTotalDistance(widget.runs)} km", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
                     Column(
                       children: [
                         const Text("Waktu", style: TextStyle(color: Colors.grey)),
                         const SizedBox(height: 5),
-                        Text(
-                          "${getTotalDuration()} menit",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
+                        // Memanggil perhitungan dari ViewModel
+                        Text("${_viewModel.calculateTotalDuration(widget.runs)} menit", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
                     Column(
                       children: [
                         const Text("Hari", style: TextStyle(color: Colors.grey)),
                         const SizedBox(height: 5),
-                        Text(
-                          "${widget.runs.length}",
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
+                        Text("${widget.runs.length}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       ],
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 30),
-
                 Row(
                   children: [
-                    // 🔥 EDIT PROFILE BUTTON
                     Expanded(
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           side: const BorderSide(color: Colors.blue),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: () async {
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const EditProfileScreen(),
-                            ),
+                            MaterialPageRoute(builder: (context) => const EditProfileScreen()),
                           );
-
-                          if (result == true) {
-                            _loadProfile(); // refresh data setelah edit
-                          }
+                          if (result == true) _fetchProfileData();
                         },
-                        child: const Text(
-                          "Edit Profile",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: const Text("Edit Profile", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                       ),
                     ),
-
                     const SizedBox(width: 10),
-
-                    // 🔥 LOGOUT BUTTON
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         onPressed: () {
                           showDialog(
@@ -184,44 +138,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               title: const Text("Konfirmasi Logout"),
                               content: const Text("Apakah Anda yakin ingin keluar?"),
                               actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("Batal"),
-                                ),
+                                TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
                                 TextButton(
                                   onPressed: () async {
-                                    final prefs = await SharedPreferences.getInstance();
-                                    await prefs.setBool('isLoggedIn', false);
-
+                                    // Memanggil logika logout dari ViewModel
+                                    await _viewModel.logoutUser();
                                     if (!context.mounted) return;
-
                                     Navigator.pushAndRemoveUntil(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const WelcomeScreen(),
-                                      ),
-                                      (route) => false,
+                                      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                                          (route) => false,
                                     );
                                   },
-                                  child: const Text(
-                                    "Logout",
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  child: const Text("Logout", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
                           );
                         },
-                        child: const Text(
-                          "Logout",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: const Text("Logout", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],

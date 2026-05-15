@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/welcome_screen.dart';
-import 'screens/home_screen.dart';
+import 'views/login_screen.dart';
+import 'views/register_screen.dart';
+import 'views/welcome_screen.dart';
+import 'views/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

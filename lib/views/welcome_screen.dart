@@ -32,7 +32,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 50),
 
-              // Tombol Masuk (Diwarnai Biru + Shadow)
+              // Tombol Masuk
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -41,12 +41,12 @@ class WelcomeScreen extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Warna tombol biru
-                  foregroundColor: Colors.white, // Warna teks putih
-                  elevation: 6, // Ini yang bikin tombolnya punya shadow dan menonjol
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  elevation: 6,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30), // Bikin ujungnya agak melengkung manis
+                    borderRadius: BorderRadius.circular(30),
                   ),
                 ),
                 child: const Text(
@@ -56,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Tombol Daftar (Background Putih, Garis Biru + Shadow)
+              // Tombol Daftar
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -65,10 +65,10 @@ class WelcomeScreen extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Warna tombol putih
-                  foregroundColor: Colors.blue, // Warna teks biru
-                  elevation: 6, // Ini yang bikin tombolnya punya shadow dan menonjol
-                  side: const BorderSide(color: Colors.blue, width: 2), // Garis pinggir biru
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.blue,
+                  elevation: 6,
+                  side: const BorderSide(color: Colors.blue, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),

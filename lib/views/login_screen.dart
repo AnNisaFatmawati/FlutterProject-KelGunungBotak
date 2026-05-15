@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../viewmodels/login_viewmodel.dart'; 
 import 'register_screen.dart';
 import 'home_screen.dart';
 
@@ -15,16 +15,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Memanggil instance dari ViewModel
+  final LoginViewModel _viewModel = LoginViewModel();
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _saveLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', true);
   }
 
   @override
@@ -95,72 +93,87 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 50),
-                  SizedBox(
+
+                  // Tombol Masuk
+                  Container(
                     height: 55,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: ElevatedButton(
                       onPressed: () async {
-                        // Cek apakah email dan password sudah diisi dengan benar
                         if (_formKey.currentState!.validate()) {
-                          await _saveLoginStatus(); // Simpan status login
+
+                          // 🔥 INILAH MVVM! View menyuruh ViewModel yang bekerja
+                          bool isSuccess = await _viewModel.loginUser(
+                              _emailController.text,
+                              _passwordController.text
+                          );
 
                           if (!context.mounted) return;
 
-                          // Menampilkan popup berhasil login
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                contentPadding: const EdgeInsets.only(top: 30, left: 20, right: 20, bottom: 20),
-                                content: const Text(
-                                  "Login berhasil. Selamat datang kembali.",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                actionsAlignment: MainAxisAlignment.center, // Posisi tombol OK di tengah
-                                actions: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(dialogContext); // Tutup popup-nya dulu
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                      ); // Baru pindah ke HomeScreen
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue,
-                                      foregroundColor: Colors.white,
-                                      elevation: 5,
-                                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      "OK",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
+                          // Jika ViewModel bilang sukses, View tinggal menampilkan Popup
+                          if (isSuccess) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
                                   ),
-                                ],
-                              );
-                            },
-                          );
+                                  contentPadding: const EdgeInsets.only(top: 30, left: 20, right: 20, bottom: 20),
+                                  content: const Text(
+                                    "Login berhasil. Selamat datang kembali.",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  actionsAlignment: MainAxisAlignment.center,
+                                  actions: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                        );
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text("OK", style: TextStyle(fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        elevation: 6,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                       ),
                       child: const Text(
                         'Masuk',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                       ),
                     ),
                   ),
