@@ -35,7 +35,11 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.5
+<<<<<<< HEAD
   provider: ^6.1.5+1
+=======
+  image_picker: ^1.2.2
+>>>>>>> annisa-mvvm
 
 dev_dependencies:
   flutter:
