@@ -141,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     (route) => false,
               );
             },
-            child: const Text("Ya, Logout", style: TextStyle(color: Colors.red)),
+            child: const Text("Keluar", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
