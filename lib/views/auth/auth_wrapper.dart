@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// Import alamat baru - Pastikan jalurnya benar
 import '../home/home_screen.dart';
 import 'welcome_screen.dart';
 

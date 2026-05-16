@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../viewmodels/edit_profile_viewmodel.dart';
+import '../../models/user_model.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -31,11 +32,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _fetchInitialData() async {
-    final data = await _viewModel.loadInitialData();
+    // Memuat profil yang dikembalikan dalam bentuk objek User dari ViewModel
+    final user = await _viewModel.loadInitialData();
     setState(() {
-      _initialName = data['name'] ?? '';
-      _initialEmail = data['email'] ?? '';
-      _base64Image = data['profile_image'];
+      _initialName = user.username;
+      _initialEmail = user.email;
+      _base64Image = user.profileImage;
       _nameController.text = _initialName;
       _emailController.text = _initialEmail;
     });
@@ -43,7 +45,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _checkModifications() {
     bool isTextModified = _nameController.text != _initialName || _emailController.text != _initialEmail;
-    // Tombol aktif kalau teks berubah ATAU gambar berubah
     if (isTextModified != _isModified) {
       setState(() => _isModified = isTextModified);
     }
@@ -56,7 +57,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
         _base64Image = base64Encode(bytes);
-        _isModified = true; // Langsung biru kalau ganti foto
+        _isModified = true; // Langsung aktif jika foto diganti
       });
     }
   }
@@ -132,19 +133,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: _isModified
                       ? [
-                    BoxShadow(
-                      color: Colors.blue.withAlpha(100), // Shadow biru jelas
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                    )
-                  ]
-                      : [], // Gada shadow kalau tombol abu-abu
+                          BoxShadow(
+                            color: Colors.blue.withAlpha(100),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
+                          )
+                        ]
+                      : [],
                 ),
                 child: ElevatedButton(
                   onPressed: _isModified ? () async {
                     if (_formKey.currentState!.validate()) {
-                      await _viewModel.saveProfileData(_nameController.text, _emailController.text, _base64Image);
+                      // Bungkus data pembaruan ke dalam objek model User
+                      final updatedUser = User(
+                        username: _nameController.text,
+                        email: _emailController.text,
+                        profileImage: _base64Image,
+                      );
+
+                      await _viewModel.saveProfileData(updatedUser);
                       if (mounted) Navigator.pop(context, true);
                     }
                   } : null,
@@ -154,7 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     disabledBackgroundColor: Colors.grey.shade300,
                     disabledForegroundColor: Colors.grey.shade600,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                    elevation: 0, // Elevation 0 karena sudah pakai Shadow dari Container
+                    elevation: 0,
                   ),
                   child: const Text("Simpan", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
