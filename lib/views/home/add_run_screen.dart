@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/run_model.dart';
 
 class AddRunScreen extends StatefulWidget {
   const AddRunScreen({super.key});
@@ -145,21 +146,26 @@ class _AddRunScreenState extends State<AddRunScreen> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(fontSize: 16),
                               ),
-                              actionsAlignment: MainAxisAlignment.center, // Memposisikan tombol OK di tengah
+                              actionsAlignment: MainAxisAlignment.center,
                               actions: [
                                 ElevatedButton(
                                   onPressed: () {
                                     Navigator.pop(dialogContext);
-                                    Navigator.pop(context, {
-                                      "date": dateController.text,
-                                      "distance": double.tryParse(distanceController.text) ?? 0,
-                                      "duration": int.tryParse(durationController.text) ?? 0,
-                                    });
+                                    
+                                    // BUNGKUS data inputan langsung menjadi Objek RunModel sebelum dikembalikan
+                                    RunModel newRun = RunModel(
+                                      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID Unik
+                                      distance: double.tryParse(distanceController.text) ?? 0.0,
+                                      duration: durationController.text, // Disimpan sebagai format String menit
+                                      date: dateController.text,
+                                    );
+
+                                    Navigator.pop(context, newRun); // Kembalikan objek RunModel
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue,
                                     foregroundColor: Colors.white,
-                                    elevation: 5, // Memberikan efek shadow pada tombol OK
+                                    elevation: 5,
                                     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
