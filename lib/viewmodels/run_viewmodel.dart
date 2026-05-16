@@ -39,6 +39,15 @@ class RunViewModel extends ChangeNotifier {
     }
   }
 
+  // ===MENGEDIT DAN MENYIMPAN RIWAYAT LARI ===
+  Future<void> updateRun(int index, Map<String, dynamic> updatedRun) async {
+    if (index >= 0 && index < _runs.length) {
+      _runs[index] = updatedRun;
+      await _saveRuns();
+      notifyListeners();
+    }
+  }
+
   Future<void> _saveRuns() async {
     final prefs = await SharedPreferences.getInstance();
     final String encodedData = jsonEncode(_runs);
