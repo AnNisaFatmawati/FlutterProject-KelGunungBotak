@@ -11,8 +11,8 @@ Aplikasi ini dikembangkan oleh kelompok mahasiswa dengan pembagian tugas sebagai
 | Nama Lengkap | NPM | Fitur & Komponen yang Dibuat |
 | :--- | :--- | :--- |
 | **An Nisa' Fatmawati** | 24082010053 | Autentikasi (Halaman Login & Register) |
-| **Talitha Nabila Candra** | 24082010061 | Halaman Beranda & Manajemen Profil (Edit Profil) |
-| **Rindi Antika Qumalasari** | 24082010064 | Fitur Tambah Aktivitas Lari, Riwayat, & Halaman Profil |
+| **Talitha Nabila Candra** | 24082010061 | Halaman Beranda, Fitur Tambah Aktivitas Lari, & Manajemen Profil (Edit Profil) |
+| **Rindi Antika Qumalasari** | 24082010064 | Riwayat, & Halaman Profil |
 
 ---
 
@@ -52,7 +52,8 @@ Berikut adalah gambaran struktur direktori utama di dalam folder `lib/`:
 ```text
 lib/
 ├── models/
-│   └── user_model.dart              # Blueprint data user
+│   └── user_model.dart              # Blueprint data
+│   └── run_model.dart
 │
 ├── viewmodels/                      # Logika bisnis & state management
 │   ├── auth_viewmodel.dart
