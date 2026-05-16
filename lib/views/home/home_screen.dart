@@ -25,48 +25,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Catat Lari", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          _selectedIndex == 0 ? "Catat Lari" : "Profil",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Konfirmasi Logout"),
-                  content: const Text("Apakah Anda yakin ingin keluar?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Batal"),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        await context.read<AuthViewModel>().logout();
-
-                        if (!context.mounted) return;
-
-                        Navigator.pop(context);
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                          (route) => false,
-                        );
-                      },
-                      child: const Text(
-                        "Logout",
-                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
       ),
 
       body: _selectedIndex == 0
@@ -75,22 +40,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddRunScreen(),
-                  ),
-                );
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddRunScreen(),
+            ),
+          );
 
-                if (result != null) {
-                  await runVM.addRun(result); // ✅ pakai ViewModel
-                }
-              },
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.add),
-            )
+          if (result != null) {
+            await runVM.addRun(result); // ✅ pakai ViewModel
+          }
+        },
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.add),
+      )
           : null,
 
       bottomNavigationBar: BottomNavigationBar(
