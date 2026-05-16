@@ -1,33 +1,33 @@
 class User {
-  final String name; // Disinkronkan dengan RegisterViewModel
+  final String username; // Menggunakan username agar sinkron dengan seluruh ViewModel
   final String email;
-  final String? password;     // Dibuat opsional agar tidak wajib selalu di-load
-  final String? profileImage; // Menampung data foto profil Base64
+  final String? password;
+  final String? profileImage;
 
   User({
-    required this.name,
+    required this.username,
     required this.email,
     this.password,
     this.profileImage,
   });
 
-  // Mengubah Objek User menjadi Map/JSON
+  // Mengubah Objek User menjadi Map/JSON untuk disimpan ke local storage
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
+      'username': username,
       'email': email,
-      if (password != null) 'password': password, // Hanya disimpan jika ada nilainya
-      'profileImage': profileImage,
+      'password': password,
+      'profile_image': profileImage,
     };
   }
 
-  // Mengambil data dari Map/JSON menjadi Objek User
+  // Membuat Objek User dari data Map/JSON (pembacaan dari local storage)
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       username: json['username'] ?? '',
       email: json['email'] ?? '',
-      password: json['password'], // Diambil jika ada di memori lokal
-      profileImage: json['profileImage'],
+      password: json['password'],
+      profileImage: json['profile_image'],
     );
   }
 }
