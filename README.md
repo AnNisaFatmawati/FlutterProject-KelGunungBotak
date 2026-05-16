@@ -11,8 +11,8 @@ Aplikasi ini dikembangkan oleh kelompok mahasiswa dengan pembagian tugas sebagai
 | Nama Lengkap | NPM | Fitur & Komponen yang Dibuat |
 | :--- | :--- | :--- |
 | **An Nisa' Fatmawati** | 24082010053 | Autentikasi (Halaman Login & Register) |
-| **Talitha Nabila Candra** | 24082010061 | Halaman Beranda, Fitur Tambah Aktivitas Lari, & Manajemen Profil (Edit Profil) |
-| **Rindi Antika Qumalasari** | 24082010064 | Riwayat, & Halaman Profil |
+| **Talitha Nabila Candra** | 24082010061 | Halaman Beranda & Fitur Tambah Aktivitas Lari |
+| **Rindi Antika Qumalasari** | 24082010064 | Manajemen Profil (Edit Profil, Riwayat, & Halaman Profil) |
 
 ---
 
