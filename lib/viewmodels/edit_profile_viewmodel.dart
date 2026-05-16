@@ -1,28 +1,51 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
 
-class EditProfileViewModel {
-  // Logika memanggil data sebelum diedit
-  Future<Map<String, String?>> loadInitialData() async {
+class EditProfileViewModel extends ChangeNotifier {
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  // === 1. MEMANGGIL DATA PROFIL AWAL (Mengembalikan Objek User) ===
+  Future<User> loadInitialData() async {
     final prefs = await SharedPreferences.getInstance();
-    return {
-      'name': prefs.getString('name') ?? '',
-      'email': prefs.getString('email') ?? '',
-      'profile_image': prefs.getString('profile_image'),
-    };
+    
+    // Membaca data lokal dan membungkusnya ke dalam Model User
+    return User(
+      username: prefs.getString('name') ?? '',
+      email: prefs.getString('email') ?? '',
+      password: prefs.getString('password'), // Membaca password jika dibutuhkan oleh sistem login
+      profileImage: prefs.getString('profile_image'),
+    );
   }
 
-  // Logika menyimpan data yang sudah diedit
-  Future<bool> saveProfileData(String name, String email, String? base64Image) async {
+  // === 2. MENYIMPAN DATA PROFIL BARU (Menerima Objek User) ===
+  Future<bool> saveProfileData(User user) async {
+    _isLoading = true;
+    notifyListeners(); // Beri tahu UI untuk menampilkan loading spinner
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('name', name);
-      await prefs.setString('email', email);
+      
+      // Simpan data ke SharedPreferences dari properti milik objek User
+      await prefs.setString('name', user.username);
+      await prefs.setString('email', user.email);
 
-      if (base64Image != null) {
-        await prefs.setString('profile_image', base64Image);
+      if (user.profileImage != null) {
+        await prefs.setString('profile_image', user.profileImage!);
       }
+      
+      // Jika password di dalam objek User ikut diubah, simpan juga ke memori lokal
+      if (user.password != null && user.password!.isNotEmpty) {
+        await prefs.setString('password', user.password!);
+      }
+
+      _isLoading = false;
+      notifyListeners(); // Beri tahu UI bahwa proses simpan selesai
       return true;
     } catch (e) {
+      _isLoading = false;
+      notifyListeners();
       return false;
     }
   }

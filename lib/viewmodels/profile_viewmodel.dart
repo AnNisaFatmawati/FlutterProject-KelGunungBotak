@@ -1,38 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
+import '../models/run_model.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  // Fungsi 1: Mengambil data user (Nama, Email, Foto)
-  Future<Map<String, String?>> loadUserProfile() async {
+  
+  // === 1. MENGAMBIL DATA USER PROFILE ===
+  Future<User> loadUserProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    return {
-      'name': prefs.getString('name') ?? 'User',
-      'email': prefs.getString('email') ?? 'user@gmail.com',
-      'profile_image': prefs.getString('profile_image'),
-    };
+    
+    // Mengambil data dari SharedPreferences dan membungkusnya ke dalam Objek User
+    return User(
+      username: prefs.getString('name') ?? 'User',
+      email: prefs.getString('email') ?? 'user@gmail.com',
+      profileImage: prefs.getString('profile_image'),
+    );
   }
 
-  // Fungsi 2: Hitung Total Jarak
-  double calculateTotalDistance(List<Map<String, dynamic>> runs) {
+  // === 2. MENGHITUNG TOTAL JARAK (Menerima List<RunModel>) ===
+  double calculateTotalDistance(List<RunModel> runs) {
     double total = 0;
     for (var run in runs) {
-      // Pastikan mengambil data 'distance' dan konversi ke double
-      total += (run['distance'] ?? 0).toDouble();
+      total += run.distance; // Jauh lebih aman, langsung akses property objek
     }
     return total;
   }
 
-  // Fungsi 3: Hitung Total Waktu
-  double calculateTotalDuration(List<Map<String, dynamic>> runs) {
-    double total = 0;
+  // === 3. MENGHITUNG TOTAL WAKTU DALAM MENIT (Menerima List<RunModel>) ===
+  double calculateTotalDuration(List<RunModel> runs) {
+    double totalMinutes = 0;
+    
     for (var run in runs) {
-      // Pastikan mengambil data 'duration' dan konversi ke double
-      total += (run['duration'] ?? 0).toDouble();
+      // Membedah format string durasi (Contoh format: "HH:mm:ss" atau "mm:ss")
+      final parts = run.duration.split(':');
+      
+      if (parts.length == 3) {
+        // Jika format HH:mm:ss
+        int hours = int.tryParse(parts[0]) ?? 0;
+        int minutes = int.tryParse(parts[1]) ?? 0;
+        int seconds = int.tryParse(parts[2]) ?? 0;
+        totalMinutes += (hours * 60) + minutes + (seconds / 60);
+      } else if (parts.length == 2) {
+        // Jika format mm:ss
+        int minutes = int.tryParse(parts[0]) ?? 0;
+        int seconds = int.tryParse(parts[1]) ?? 0;
+        totalMinutes += minutes + (seconds / 60);
+      }
     }
-    return total;
+    return totalMinutes; // Mengembalikan total waktu dalam satuan Menit
   }
 
-  // Fungsi 4: Logout
+  // === 4. LOGOUT ===
   Future<void> logoutUser() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', false); // Set status login jadi false
