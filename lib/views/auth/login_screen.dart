@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../../models/user_model.dart'; // Tambahkan import User model sesuai kesepakatan
 import 'register_screen.dart';
 import '../home/home_screen.dart';
 
@@ -29,11 +30,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Ambil Koki (ViewModel) tanpa me-rebuild layar
     final authVM = context.read<AuthViewModel>();
-
-    final success = await authVM.login(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
+    
+    // 1. Bungkus kredensial ke dalam objek model User (username dikosongkan karena menggunakan email)
+    User credentials = User(
+      username: '', 
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
     );
+
+    // 2. Kirim objek model User ke dalam fungsi login di ViewModel
+    final success = await authVM.login(credentials);
 
     if (!context.mounted) return;
 
