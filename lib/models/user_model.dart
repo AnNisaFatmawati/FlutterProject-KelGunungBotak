@@ -1,29 +1,29 @@
 class User {
-  final String username;
+  final String name; // Disinkronkan dengan RegisterViewModel
   final String email;
   final String password;
 
   User({
-    required this.username,
+    required this.name,
     required this.email,
     required this.password,
   });
 
-  // convert ke JSON
+  // Convert ke JSON (buat nyimpen data ke API / Memori lokal yang kompleks)
   Map<String, dynamic> toJson() {
     return {
-      'username': username,
+      'name': name,
       'email': email,
       'password': password,
     };
   }
 
-  // ambil dari JSON
+  // Ambil dari JSON (buat narik data dari API / Memori lokal)
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      username: json['username'],
-      email: json['email'],
-      password: json['password'],
+      name: json['name'] ?? '', // Pengaman: kalau null, isinya string kosong
+      email: json['email'] ?? '',
+      password: json['password'] ?? '',
     );
   }
 }
