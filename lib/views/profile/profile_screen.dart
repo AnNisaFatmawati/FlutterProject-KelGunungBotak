@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../viewmodels/profile_viewmodel.dart';
+import '../../models/run_model.dart';
 import '../auth/welcome_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> runs;
+  final List<RunModel> runs; // Ubah dari List<Map> menjadi List<RunModel>
   const ProfileScreen({super.key, required this.runs});
 
   @override
@@ -26,12 +27,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _fetchProfileData() async {
-    final data = await _viewModel.loadUserProfile();
+    // Memuat profil yang dikembalikan dalam bentuk objek User dari ViewModel
+    final user = await _viewModel.loadUserProfile();
     if (!mounted) return;
     setState(() {
-      name = data['name'] ?? 'User';
-      email = data['email'] ?? 'user@gmail.com';
-      _base64Image = data['profile_image'];
+      name = user.username;
+      email = user.email;
+      _base64Image = user.profileImage;
     });
   }
 
@@ -51,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withAlpha(50), // Ganti withOpacity biar nggak kuning
+                color: Colors.grey.withAlpha(50),
                 spreadRadius: 2,
                 blurRadius: 15,
                 offset: const Offset(0, 5),
@@ -76,6 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
+                    // ViewModel menghitung data berdasarkan list objek RunModel
                     _buildStat("Jarak", "${_viewModel.calculateTotalDistance(widget.runs)} km"),
                     _buildStat("Waktu", "${_viewModel.calculateTotalDuration(widget.runs)} menit"),
                     _buildStat("Hari", "${widget.runs.length}"),

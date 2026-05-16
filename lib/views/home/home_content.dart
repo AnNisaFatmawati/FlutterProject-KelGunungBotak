@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/run_viewmodel.dart';
+import '../../models/run_model.dart'; 
 
 class HomeContent extends StatelessWidget {
-  final List<Map<String, dynamic>> runs;
+  final List<RunModel> runs; // Ubah tipe data dari List<Map> menjadi List<RunModel>
 
   const HomeContent({super.key, required this.runs});
-  void _showEditDialog(BuildContext context, int index, Map<String, dynamic> currentRun) {
-    final distanceController = TextEditingController(text: currentRun['distance'].toString());
-    final durationController = TextEditingController(text: currentRun['duration'].toString());
-    final dateController = TextEditingController(text: currentRun['date'].toString());
+
+  void _showEditDialog(BuildContext context, int index, RunModel currentRun) { // Ubah Map menjadi RunModel
+    final distanceController = TextEditingController(text: currentRun.distance.toString()); // Akses objek dengan titik
+    final durationController = TextEditingController(text: currentRun.duration.toString()); // Akses objek dengan titik
+    final dateController = TextEditingController(text: currentRun.date.toString());         // Akses objek dengan titik
 
     showDialog(
       context: context,
@@ -74,11 +76,14 @@ class HomeContent extends StatelessWidget {
             // Tombol Simpan
             TextButton(
               onPressed: () async {
-                final updatedRun = {
-                  'distance': double.tryParse(distanceController.text) ?? currentRun['distance'],
-                  'duration': int.tryParse(durationController.text) ?? currentRun['duration'],
-                  'date': dateController.text.isNotEmpty ? dateController.text : currentRun['date'],
-                };
+                // Bungkus data yang diperbarui ke dalam Objek RunModel baru
+                final updatedRun = RunModel(
+                  id: currentRun.id, // Pertahankan ID lama agar tidak berubah
+                  distance: double.tryParse(distanceController.text) ?? currentRun.distance,
+                  duration: durationController.text.isNotEmpty ? durationController.text : currentRun.duration,
+                  date: dateController.text.isNotEmpty ? dateController.text : currentRun.date,
+                );
+
                 await Provider.of<RunViewModel>(context, listen: false)
                     .updateRun(index, updatedRun);
 
@@ -117,71 +122,71 @@ class HomeContent extends StatelessWidget {
             Expanded(
               child: runs.isEmpty
                   ? const Center(
-                child: Text("Belum ada data lari"),
-              )
+                      child: Text("Belum ada data lari"),
+                    )
                   : ListView.builder(
-                itemCount: runs.length,
-                itemBuilder: (context, index) {
-                  final run = runs[index];
+                      itemCount: runs.length,
+                      itemBuilder: (context, index) {
+                        final run = runs[index]; // Objek RunModel
 
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.directions_run),
-                      title: Text("${run['distance']} km"),
-                      subtitle: Text(
-                        "Durasi: ${run['duration']} menit\nTanggal: ${run['date']}",
-                      ),
+                        return Card(
+                          child: ListTile(
+                            leading: const Icon(Icons.directions_run),
+                            title: Text("${run.distance} km"), // Gunakan properti objek .distance
+                            subtitle: Text(
+                              "Durasi: ${run.duration} menit\nTanggal: ${run.date}", // Gunakan properti .duration & .date
+                            ),
 
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Tombol Edit
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () {
-                              _showEditDialog(context, index, run);
-                            },
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Tombol Edit
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () {
+                                    _showEditDialog(context, index, run);
+                                  },
+                                ),
+                                // Tombol Hapus
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text("Konfirmasi Hapus"),
+                                          content: const Text("Apakah benar Anda ingin menghapus riwayat lari ini?"),
+                                          actions: [
+                                            TextButton(
+                                              child: const Text("Tidak"),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: const Text(
+                                                "Ya, Hapus",
+                                                style: TextStyle(color: Colors.red),
+                                              ),
+                                              onPressed: () {
+                                                Provider.of<RunViewModel>(context, listen: false)
+                                                    .deleteRun(index);
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                          // Tombol Hapus
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text("Konfirmasi Hapus"),
-                                    content: const Text("Apakah benar Anda ingin menghapus riwayat lari ini?"),
-                                    actions: [
-                                      TextButton(
-                                        child: const Text("Tidak"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: const Text(
-                                          "Ya, Hapus",
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                        onPressed: () {
-                                          Provider.of<RunViewModel>(context, listen: false)
-                                              .deleteRun(index);
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
